@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.urls import reverse
+from django.urls import reverse, exceptions
 from secrets import token_urlsafe
 from .forms import LinkForm
 from .models import Linker
@@ -15,14 +15,10 @@ def main(request):
         link = request.POST.get('link')
         link_hash = request.POST.get('link_hash') if request.POST.get('link_hash') else token_urlsafe(8)
 
-        if link and (not link.startswith('http://') or not link.startswith('https://')):
-            link = 'http://' + link
-
         try:
             Linker.objects.get(link_hash=link_hash)
         except Linker.DoesNotExist:
             form = LinkForm(data={'link': link, 'link_hash': link_hash})
-
             if form.is_valid():
                 Linker(link=form.cleaned_data['link'], link_hash=form.cleaned_data['link_hash']).save()
                 return redirect('link/'+link_hash)
@@ -67,6 +63,9 @@ def redirector(request, link_hash):
     if linker:
         linker.visits += 1
         linker.save()
-        return redirect(linker.link)
+        try:
+            return redirect(linker.link)
+        except exceptions.NoReverseMatch:
+            return redirect('http://' + linker.link) 
     else:
         return redirect('/')
