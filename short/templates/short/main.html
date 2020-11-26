@@ -1,0 +1,35 @@
+{% extends 'short/template.html' %}
+
+{% block script %}
+<script>
+    function changeState() {
+        var x = document.getElementById('customizer')
+
+        if (x.style.display == "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<main>
+    <h1>Long>Short url</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% if error %}
+            <div style="color: red;">{{ error }}</div>
+        {% endif %}
+        <label>Your link:</label>
+        {{ form.link }}
+        <span class="customize-link" onclick="changeState()">Wanna customize?</span>
+        <div id="customizer" style="display: none;">
+            <label>Custom link:</label>
+            {{ form.link_hash }}
+        </div>
+        <input type="submit" value="Shortify!">
+    </form>
+</main>
+{% endblock %}
